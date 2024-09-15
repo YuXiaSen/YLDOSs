@@ -36,8 +36,6 @@ class YLDOS:
     def getIndex(self):
         return self.__index
     def _plot(self, fig, Orbit=None, _spinNo = False):
-        if self.__data is None or len(self.__data_json['energy']) == 0:
-            raise KeyError('也许没有自旋 or 其他错误')
         
         if _spinNo:
             if self.__spin == 1:
@@ -243,9 +241,12 @@ class YLDOSs:
             del TOTAL_DOS['spin1']['integrated']
         if 'integrated' in TOTAL_DOS['spin2'].keys():
             del TOTAL_DOS['spin2']['integrated']
-
+        
+        
         self.__TOTAL_DOS = {'spin1': YLDOS(TOTAL_DOS['spin1'],_index='total', _ele = 'total',_spin = 1,_filepath=self.__filepath),
                             'spin2': YLDOS(TOTAL_DOS['spin2'],_index='total', _ele = 'total',_spin = 2,_filepath=self.__filepath)}
+        if self.__TOTAL_DOS['spin2'].getDataJson()['energy'] == []:
+            del self.__TOTAL_DOS['spin2']
 
         
     def getIonsNum(self):
@@ -254,16 +255,19 @@ class YLDOSs:
 
     def getTotalDos(self, _spin = 'up'):
         _spin = 'spin1' if _spin == 'up' else 'spin2'
+        if _spin not in self.__TOTAL_DOS.keys():
+            raise Exception('也许没有自旋')
         return self.__TOTAL_DOS[_spin]
-    def getIONsDos(self, _spin='up'):
-        _spin = 'spin1' if _spin == 'up' else 'spin2'
-        return [i[_spin] for i in self.__IONs_DATA]
     
     def getDosbyIndex(self,index,_spin = 'up'):
         _spin = 'spin1' if _spin == 'up' else 'spin2'
+        if _spin not in self.__TOTAL_DOS.keys():
+            raise Exception('也许没有自旋')
         return self.__IONs_DATA[index][_spin]
     
     def pplot(self, _atoms=None,_orbits=None, _isSpin = False):
+        if _isSpin == True and 'spin2' not in self.__TOTAL_DOS.keys():
+            raise Exception('也许没有自旋')
 
         _ATOMS = []
         if _atoms == None:
@@ -281,6 +285,8 @@ class YLDOSs:
             raise Exception('The length of _atoms and _orbits must be the same.')
 
         fig = go.Figure()
+        fig.add_hline(y=0, line_dash="solid",line_width=1, line_color="black")
+
         for ind,_atom in enumerate(_ATOMS):
             if _isSpin:
                 _atom['spin1']._plot(fig, Orbit = _orbits[ind], _spinNo = True)
@@ -289,7 +295,6 @@ class YLDOSs:
                 _atom['spin1']._plot(fig, Orbit = _orbits[ind], _spinNo = False)
 
         
-        fig.add_hline(y=0, line_dash="dash",line_width=1, line_color="red")
         fig.add_vline(x=0, line_dash="dash",line_width=1, line_color="red")
 
 
@@ -316,6 +321,8 @@ class YLDOSs:
     
     def getbyType(self, _type='total', _spin = 'up'):
         _spin = 'spin1' if _spin == 'up' else 'spin2'
+        if _spin not in self.__TOTAL_DOS.keys():
+            raise Exception('也许没有自旋')
 
         if _type == 'total':
             return self.__TOTAL_DOS
@@ -328,4 +335,14 @@ class YLDOSs:
     def getbyIndex(self, _index, _spin = 'up'):
         _spin = 'spin1' if _spin == 'up' else 'spin2'
 
+        if _spin not in self.__TOTAL_DOS.keys():
+            raise Exception('也许没有自旋')
+        
         return self.__IONs_DATA[_index][_spin]
+    
+    def test(self):
+        return self.__IONs_DATA
+    def test1(self):
+        return self.__TOTAL_DOS
+    
+    
