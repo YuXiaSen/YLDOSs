@@ -24,4 +24,9 @@ fig = a.pplot(_atoms=[1,15],_orbits=[['s','p'],['s','p']],_isSpin = True)
 # fig.update_yaxes(range=[0,20])
 # 显示
 fig.show()
+
+# 保存图片
+import plotly.io as pio
+pio.write_image(fig,f'./dos.svg', scale=6)
+pio.write_html(fig,f'./dos.html')
 ```
